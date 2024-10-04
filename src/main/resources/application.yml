@@ -9,3 +9,6 @@ spring:
     username: root
     password: Mi20030610.
     url: jdbc:mysql://localhost:3306/blog
+  web:
+    resources:
+      static-locations: file:F:\\elmImg

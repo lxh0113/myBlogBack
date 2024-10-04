@@ -4,13 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.blogback.common.R;
 import com.example.blogback.dao.UserDao;
 import com.example.blogback.domain.User;
+import com.example.blogback.domain.other.UserDetails;
+import com.example.blogback.domain.other.UserInfo;
 import com.example.blogback.utils.Email.EmailCaptcha;
 import com.example.blogback.utils.Email.ManageCaptcha;
 import com.example.blogback.utils.Email.SendCaptcha;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @ResponseBody
@@ -20,6 +24,7 @@ public class UserController {
 
     @Autowired
     private UserDao userDao;
+
 
     @PostMapping("/login")
     public R login(@RequestParam Integer id,@RequestParam String password){
@@ -93,4 +98,56 @@ public class UserController {
         }
 
     }
+
+    @GetMapping("/{userId}")
+    public R getUser(@PathVariable Integer userId){
+        User user=Common.getUserById(userId);
+        user.setPassword("");
+
+        return R.success(user);
+    }
+
+    @GetMapping("/info/{userId}")
+    public R getUserInfo(@PathVariable Integer userId){
+        UserInfo userInfo=Common.getUserInfoById(userId);
+
+        return R.success(userInfo);
+    }
+
+    @PostMapping("/change")
+    public R changeProfile(@RequestBody User user){
+
+        if(user.getPassword()!=null||user.getPassword()!=""){
+            User oldUser=userDao.selectById(user.getId());
+            user.setPassword(oldUser.getPassword());
+        }
+
+        int update = userDao.updateById(user);
+        if(update>0) return R.success(user);
+        else return R.error("修改失败");
+    }
+
+    @GetMapping("/searchInput")
+    public R searchUser(@RequestParam String searchInput,@RequestParam  Integer userId){
+
+        QueryWrapper<User> userQueryWrapper=new QueryWrapper<>();
+        userQueryWrapper.like("id",searchInput)
+                .or()
+                .like("intro",searchInput)
+                .or()
+                .like("email",searchInput)
+                .ne("id",userId)
+        ;
+
+        List<User> users = userDao.selectList(userQueryWrapper);
+
+        ArrayList<UserDetails> userDetails=new ArrayList<>();
+        for (User user : users) {
+            userDetails.add(Common.getUserDetails(userId,user.getId()));
+        }
+
+        return R.success(userDetails);
+    }
+
+
 }
