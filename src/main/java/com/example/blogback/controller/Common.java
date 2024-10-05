@@ -472,5 +472,34 @@ public class Common {
 
         return browseGroups;
     }
+    
+    public static ArrayList<ArticleInfo> adminGetArticleInfo(List<Article> articles){
+        ArrayList<ArticleInfo> articleInfos=new ArrayList<>();
+        for (Article article : articles) {
+            ArticleInfo articleInfo=new ArticleInfo();
+            articleInfo.setArticle(article);
+            articleInfo.setUser(common.userDao.selectById(article.getUserId()));
+
+            articleInfos.add(articleInfo);
+        }
+
+        return articleInfos;
+    }
+
+
+    public static ArrayList<CommentInfo> adminGetComments(){
+        ArrayList<CommentInfo> commentInfos=new ArrayList<>();
+
+        QueryWrapper<Comment> commentQueryWrapper=new QueryWrapper<>();
+        commentQueryWrapper.last("limit 10");
+
+        List<Comment> comments = common.commentDao.selectList(commentQueryWrapper);
+
+        for (Comment comment : comments) {
+            commentInfos.add(new CommentInfo(comment,common.userDao.selectById(comment.getUserId()),null,null));
+        }
+
+        return commentInfos;
+    }
 
 }

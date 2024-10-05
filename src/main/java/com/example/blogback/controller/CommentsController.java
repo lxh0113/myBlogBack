@@ -40,6 +40,10 @@ public class CommentsController {
         else return R.success("删除成功");
     }
 
+    @GetMapping("/admin")
+    public R adminGetComments(){
+        ArrayList<CommentInfo> commentInfos = Common.adminGetComments();
 
-
+        return R.success(commentInfos);
+    }
 }

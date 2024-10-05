@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @ResponseBody
 @RestController
@@ -193,5 +194,44 @@ public class ArticleController {
         }
 
         return R.success(articleInfos);
+    }
+    
+    @GetMapping("/allArticle")
+    public R getAllAuditArticle(@RequestParam Integer status,@RequestParam String word){
+
+
+        QueryWrapper<Article> articleQueryWrapper=new QueryWrapper<>();
+        articleQueryWrapper.eq(status!=4,"status",status)
+                .and(word!=null&& !Objects.equals(word, ""),a -> a.like("title",word)
+                        .or()
+                        .like("brief",word));
+
+
+        List<Article> articles = articleDao.selectList(articleQueryWrapper);
+
+        ArrayList<ArticleInfo> articleInfos = Common.adminGetArticleInfo(articles);
+
+        return R.success(articleInfos);
+
+    }
+
+    @PostMapping("/success/{id}")
+    public R successArticle(@PathVariable Integer id){
+        Article article = articleDao.selectById(id);
+        article.setStatus(2);
+
+        articleDao.updateById(article);
+
+        return R.success(article);
+    }
+
+    @PostMapping("/fail/{id}")
+    public R failArticle(@PathVariable Integer id){
+        Article article = articleDao.selectById(id);
+        article.setStatus(3);
+
+        articleDao.updateById(article);
+
+        return R.success(article);
     }
 }
