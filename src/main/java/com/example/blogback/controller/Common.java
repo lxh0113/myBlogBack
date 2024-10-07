@@ -56,6 +56,9 @@ public class Common {
     @Autowired
     private CollectionDao collectionDao;
 
+    @Autowired
+    private MessageDao messageDao;
+
 
     private static  Common common;
 
@@ -73,6 +76,8 @@ public class Common {
         common.fansDao=this.fansDao;
         common.articleLabelDao=this.articleLabelDao;
         common.collectionDao=this.collectionDao;
+        common.messageDao=this.messageDao;
+
     }
 
 
@@ -487,11 +492,13 @@ public class Common {
     }
 
 
-    public static ArrayList<CommentInfo> adminGetComments(){
+    public static ArrayList<CommentInfo> adminGetComments(Integer articleId,String word){
         ArrayList<CommentInfo> commentInfos=new ArrayList<>();
 
         QueryWrapper<Comment> commentQueryWrapper=new QueryWrapper<>();
-        commentQueryWrapper.last("limit 10");
+        commentQueryWrapper.eq(articleId!=null&&articleId!=0,"article_id",articleId)
+                .like(word!=null&& !word.isEmpty(),"content",word)
+                .last("limit 10");
 
         List<Comment> comments = common.commentDao.selectList(commentQueryWrapper);
 
@@ -500,6 +507,79 @@ public class Common {
         }
 
         return commentInfos;
+    }
+
+    public static ArrayList<UserDetails> getFans(Integer userId){
+        ArrayList<UserDetails> userDetails=new ArrayList<>();
+
+         QueryWrapper<Fans> fansQueryWrapper=new QueryWrapper<>();
+         fansQueryWrapper.eq("user_id",userId);
+
+        List<Fans> fans = common.fansDao.selectList(fansQueryWrapper);
+        for (Fans fan : fans) {
+            userDetails.add(new UserDetails(Common.getUserById(fan.getFansId()),Common.getUserInfoById(fan.getFansId())));
+        }
+
+        return userDetails;
+    }
+
+    public static ArrayList<MessageCommon> getLikes(Integer userId){
+        ArrayList<MessageCommon> messageCommons=new ArrayList<>();
+        List<Integer> usersWhoLikedArticle = common.messageDao.findUsersWhoLikedArticle(userId);
+
+        for (Integer i : usersWhoLikedArticle) {
+            Love love = common.loveDao.selectById(i);
+            messageCommons.add(new MessageCommon(Common.getUserById(love.getUserId()),"点赞",null,common.articleDao.selectById(love.getArticleId())));
+        }
+
+        return messageCommons;
+    }
+
+    public static ArrayList<MessageCommon> getCollects(Integer userId){
+        ArrayList<MessageCommon> messageCommons=new ArrayList<>();
+        List<Integer> usersWhoCollectedArticle = common.messageDao.findUsersWhoCollectedArticle(userId);
+
+        for (Integer i : usersWhoCollectedArticle) {
+            Collect collect = common.collectDao.selectById(i);
+            messageCommons.add(new MessageCommon(Common.getUserById(collect.getUserId()),"收藏",null,common.articleDao.selectById(collect.getArticleId())));
+        }
+
+        return messageCommons;
+    }
+
+    public static ArrayList<MessageCommon> getComments(Integer userId){
+        ArrayList<MessageCommon> messageCommons=new ArrayList<>();
+        List<Integer> article = common.messageDao.findUsersWhoCommentedArticle(userId);
+
+        for (Integer i : article) {
+            Comment comment = common.commentDao.selectById(i);
+            messageCommons.add(new MessageCommon(Common.getUserById(comment.getUserId()),"评论",comment,common.articleDao.selectById(comment.getArticleId())));
+        }
+
+        return messageCommons;
+    }
+
+    public static ArrayList<MessageFriend> getMessages(Integer userId){
+
+        ArrayList<MessageFriend> messageFriends=new ArrayList<>();
+
+        List<Integer> allMessageFriends = common.messageDao.findAllMessageFriends(userId);
+
+        for (Integer i : allMessageFriends) {
+            System.out.println(i+"  "+userId);
+            QueryWrapper<Message> messageQueryWrapper=new QueryWrapper<>();
+            messageQueryWrapper.eq("sender_id",userId)
+                    .eq("receiver_id",i)
+                    .or()
+                    .eq("sender_id",i)
+                    .eq("receiver_id",userId)
+                    .orderBy(true,true,"date");
+
+
+            messageFriends.add(new MessageFriend(Common.getUserById(i),common.messageDao.selectList(messageQueryWrapper)));
+        }
+
+        return messageFriends;
     }
 
 }

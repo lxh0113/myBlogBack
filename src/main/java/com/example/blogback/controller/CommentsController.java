@@ -41,8 +41,8 @@ public class CommentsController {
     }
 
     @GetMapping("/admin")
-    public R adminGetComments(){
-        ArrayList<CommentInfo> commentInfos = Common.adminGetComments();
+    public R adminGetComments(@RequestParam Integer articleId,@RequestParam String word){
+        ArrayList<CommentInfo> commentInfos = Common.adminGetComments(articleId,word);
 
         return R.success(commentInfos);
     }

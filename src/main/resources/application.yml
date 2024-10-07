@@ -12,3 +12,9 @@ spring:
   web:
     resources:
       static-locations: file:F:\\elmImg
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.log4j2.Log4j2Impl
+logging:
+  level:
+    com.example.blogback.dao: debug

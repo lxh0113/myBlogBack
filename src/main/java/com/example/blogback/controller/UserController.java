@@ -150,4 +150,22 @@ public class UserController {
     }
 
 
+    @GetMapping("/admin")
+    public R adminGetUserInfo(@RequestParam Integer userId,@RequestParam String word){
+        QueryWrapper<User> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq(userId!=0&&userId!=null,"id",userId)
+                .like(word!=null&&word!="","username",word);
+
+
+        List<User> users = userDao.selectList(queryWrapper);
+
+        ArrayList<UserDetails> arrayList=new ArrayList<>();
+        for (User user : users) {
+            arrayList.add(new UserDetails(user,Common.getUserInfoById(user.getId())));
+        }
+
+        return R.success(arrayList);
+    }
+
+
 }

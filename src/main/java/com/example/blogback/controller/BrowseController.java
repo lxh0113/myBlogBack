@@ -10,7 +10,9 @@ import com.example.blogback.domain.other.BrowseHistory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -23,6 +25,7 @@ public class BrowseController {
 
     @PostMapping
     public R addBrowse(@RequestBody Browse browse){
+        browse.setDate(new Date());
         int insert = browseDao.insert(browse);
 
         if(insert>0) return R.success(browse);
