@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.blogback.common.R;
 import com.example.blogback.dao.*;
 import com.example.blogback.domain.*;
+import com.example.blogback.domain.Collection;
 import com.example.blogback.domain.other.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,10 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 
 @Component
@@ -335,6 +333,33 @@ public class Common {
         return articleInfos;
     }
 
+    public static ArrayList<ArticleInfo> getRecommendArticles(Integer userId){
+        ArrayList<ArticleInfo> articleInfos=new ArrayList<>();
+        Set<Integer> articleIds=new HashSet<>();
+
+        QueryWrapper<Love> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("user_id",userId)
+                .groupBy("id")
+                .orderByDesc("id")
+                .last("limit 5");
+
+
+        List<Love> loves = common.loveDao.selectList(queryWrapper);
+        loves.forEach(love -> {
+            QueryWrapper<Love> loveQueryWrapper=new QueryWrapper<>();
+            loveQueryWrapper.ne("user_id",userId)
+                    .last("limit 5");
+
+            List<Love> loveList = common.loveDao.selectList(loveQueryWrapper);
+            loveList.forEach(loveItem->{
+                if(articleIds.add(loveItem.getArticleId()))  articleInfos.add(getArticleInfo(loveItem.getArticleId(),userId));
+            });
+        });
+
+        return articleInfos;
+    }
+
+
     public static ArrayList<ArticleInfo> getAllFollowArticles(Integer userId){
         QueryWrapper<Fans> fansQueryWrapper=new QueryWrapper<>();
         fansQueryWrapper.eq("fans_id",userId);
@@ -345,7 +370,7 @@ public class Common {
         QueryWrapper<Article> articleQueryWrapper=new QueryWrapper<>();
         for (Fans fan : fans) {
             articleQueryWrapper.clear();
-            articleQueryWrapper.eq("user_id",fan.getUserId());
+            articleQueryWrapper.eq("user_id",fan.getUserId()).eq("status",2);
 
             List<Article> articles = common.articleDao.selectList(articleQueryWrapper);
 
@@ -372,7 +397,8 @@ public class Common {
         List<Browse> browses = common.browseDao.selectList(browseQueryWrapper);
 
         for (Browse brows : browses) {
-            articleInfos.add(getArticleInfo(brows.getArticleId(),userId));
+            Article article=common.articleDao.selectById(brows.getArticleId());
+            if(article.getStatus()==2)  articleInfos.add(getArticleInfo(brows.getArticleId(),userId));
         }
 
         return articleInfos;

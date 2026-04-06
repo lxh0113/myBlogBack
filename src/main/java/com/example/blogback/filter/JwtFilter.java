@@ -50,8 +50,6 @@ public class JwtFilter implements Filter {
             System.out.println(token);
             System.out.println(long_token);
 
-//            String token=request.getHeader("token");
-//            String long_token=request.getHeader("long_token");
             int res=0;
             try {
                 res=JwtUtils.istoken(token,long_token);

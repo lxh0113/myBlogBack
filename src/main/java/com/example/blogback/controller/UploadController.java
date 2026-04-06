@@ -2,6 +2,7 @@ package com.example.blogback.controller;
 
 import com.example.blogback.common.EditorR;
 import com.example.blogback.common.R;
+import com.example.blogback.utils.ImageWatermark;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,7 +37,7 @@ public class UploadController {
     }
 
     @PostMapping("/editor")
-    public EditorR editorUpload(@RequestPart MultipartFile file){
+    public EditorR editorUpload(@RequestPart MultipartFile file,@RequestParam String userName){
         String fileName = file.getOriginalFilename();
         String suffixName = null;
         if (fileName != null) {
@@ -46,10 +47,15 @@ public class UploadController {
         String filePath = "F:\\elmImg\\";
         try {
             file.transferTo(new File(filePath + fileName));
+
+
         } catch (IOException e) {
             e.printStackTrace();
             return EditorR.fail("上传失败");
         }
+        ImageWatermark.setSY(
+                filePath+fileName,userName+"@ csdn"
+        );
 
         System.out.println("http://localhost:8080/img/"+fileName);
         return EditorR.success("http://localhost:8080/img/"+fileName);

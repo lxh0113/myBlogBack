@@ -142,7 +142,7 @@ public class ArticleController {
 
     @GetMapping("/recommend/{userId}")
     public R getRecommend(@PathVariable Integer userId){
-        ArrayList<ArticleInfo> allArticle = Common.getAllArticle(userId);
+        ArrayList<ArticleInfo> allArticle = Common.getRecommendArticles(userId);
         return R.success(allArticle);
     }
 
@@ -158,7 +158,8 @@ public class ArticleController {
 
         QueryWrapper<Article> articleQueryWrapper=new QueryWrapper<>();
         articleQueryWrapper.eq("status",2)
-                .groupBy("date","title","content","id","user_id","url","status","category_id","column_id","kind","brief");
+                .groupBy("date","title","content","id","user_id","url","status","category_id","column_id","kind","brief")
+                .orderByDesc("date");
 
         List<Article> articles = articleDao.selectList(articleQueryWrapper);
 
@@ -181,6 +182,7 @@ public class ArticleController {
     public R searchArticle(@RequestParam String searchInput,@RequestParam  Integer userId){
 
         QueryWrapper<Article> articleQueryWrapper=new QueryWrapper<>();
+        articleQueryWrapper.eq("status",2);
         articleQueryWrapper.like("title",searchInput)
                 .or()
                 .like("brief",searchInput);

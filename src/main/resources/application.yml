@@ -12,6 +12,11 @@ spring:
   web:
     resources:
       static-locations: file:F:\\elmImg
+  servlet:
+    multipart:
+      max-file-size: 10MB # 设置最大上传文件大小为10MB
+      max-request-size: 10MB # 设置最大请求体大小为10MB（包含文件）
+
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.log4j2.Log4j2Impl
